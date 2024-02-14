@@ -15,7 +15,7 @@
         <p>E-COM</p>
         <div id="topnavcontent">
             <div class="cart">
-                <a class="fa fa-shopping-cart" id="carticon" onclick="checkLoginStatus()"></a>
+                <a class="fa fa-shopping-cart" id="carticon" onclick="checkLoginStatus01()"></a>
                 <span class="count" id="cart-count">0</span>
 
             </div>
@@ -39,7 +39,7 @@
 
             </ul>
         </div>
-        
+
     </nav>
 
     <div class="prod-card01" id="product-list"></div>
@@ -61,8 +61,175 @@
             </form>
         </div>
     </div>
-
     <script>
+        let product = {};
+
+        function openNav() {
+            document.getElementById("side-nav").classList.add('sidenav_open');
+        }
+
+        function closeNav() {
+            document.getElementById("side-nav").classList.remove('sidenav_open');
+        }
+
+        // Find the cart count and icon elements
+        const cartCountElement = document.getElementById('cart-count');
+
+        // Initialize count
+        let count = parseInt(cartCountElement.textContent);
+        console.log(parseInt(cartCountElement.textContent));
+        // Find the "Add to Cart" buttons
+        const addToCartButtons = document.querySelectorAll('.addcart_buy02');
+
+        // Function to handle the "Add to Cart" click event
+        function addToCart(product) {
+            // Increment count
+            count++;
+            // Update count in the shopping cart icon
+            // cartCountElement.textContent = count;
+            // Check login status
+            console.log(product);
+            checkLoginStatus(product);
+        }
+
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const product = {
+                    product_name: button.dataset.productName,
+                    product_spec: button.dataset.productSpec,
+                    product_image: button.dataset.productImage,
+                    count: count
+                };
+                addToCart(product);
+            });
+        });
+        async function checkLoginStatus01() {
+            try {
+                const response = await fetch('http://192.168.11.72:4000/check-login');
+                const data = await response.json();
+                if (data.loggedIn) {
+                    // User is logged in, redirect to cart page
+                    window.location.href = '/cart.html';
+                } else {
+                    openModal();
+                    // User is not logged in, show pop-up for login/signup
+                    // You can implement your modal/pop-up logic here
+                    // Example: showLoginModal();
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+            }
+        }
+        // Example function to check logged-in status from the database
+        async function checkLoginStatus(product) {
+            try {
+                const response = await fetch('http://192.168.11.72:4000/check-login');
+                const data = await response.json();
+                if (data.loggedIn) {
+                    // User is logged in, redirect to cart page
+                    window.location.href = '/cart.html';
+                } else {
+                    openModal();
+                    // User is not logged in, show pop-up for login/signup
+                    // You can implement your modal/pop-up logic here
+                    // Example: showLoginModal();
+                    addtoCart01(product);
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+            }
+        }
+
+        function openModal() {
+            const modal = document.getElementById('myModal');
+            modal.style.display = 'block';
+        }
+
+        // Function to close the login modal
+        function closeModal() {
+            const modal = document.getElementById('myModal');
+            modal.style.display = 'none';
+        }
+
+        // Fetch data from JSON API
+        fetch('http://192.168.11.72:4000/getproductdetails')
+            .then(response => response.json())
+            .then(data => {
+                const productList = document.getElementById('product-list');
+                // Iterate through each product and create a card
+                data.forEach(product => {
+                    // Create card element
+                    const card = document.createElement('div');
+                    card.classList.add('prod-card');
+
+                    // Create image element
+                    const img = document.createElement('img');
+                    img.classList.add('image');
+                    img.src = product.image_path.image; // Using the correct path from the JSON
+                    img.alt = product.product_name;
+
+                    // Create heading for product name
+                    const name = document.createElement('h2');
+                    name.textContent = product.product_name;
+
+                    // Create paragraph for product spec
+                    const spec = document.createElement('p');
+                    spec.textContent = `Spec: ${product.product_spec}`;
+
+                    // Create paragraph for product cost
+                    const cost = document.createElement('p');
+                    cost.textContent = `Cost: RS.${product.product_cost}`;
+
+                    const cart = document.createElement('button');
+                    cart.classList.add('addcart_buy02');
+                    cart.textContent = 'Add to Cart';
+
+                    // Add onclick attribute
+                    cart.onclick = function () {
+                        product = {
+                            product_name: product.product_name,
+                            product_spec: product.product_spec,
+                            product_image: product.product_image,
+                            count: count
+                        };
+                        addToCart(product);
+                    };
+
+                    // Append elements to card
+                    card.appendChild(img);
+                    card.appendChild(name);
+                    card.appendChild(spec);
+                    card.appendChild(cost);
+                    card.appendChild(cart);
+
+                    // Append card to product list
+                    productList.appendChild(card);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+
+        async function addtoCart01(product) {
+            try {
+                const response = await fetch("http://192.168.11.72:4000/addtocart", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(product),
+                });
+
+                const result = await response.json();
+                console.log("Success:", result);
+            } catch (error) {
+                console.error("Error adding to cart:", error);
+            }
+        }
+
+    </script>
+    <!-- <script>
+        let product={}
         function openNav() {
             document.getElementById("side-nav").classList.add('sidenav_open');
         }
@@ -79,17 +246,23 @@
         const addToCartButtons = document.querySelectorAll('.addcart_buy02');
 
         // Add click event listener to each "Add to Cart" button
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Increment count
-                count++;
-                // Update count in the shopping cart icon
-                cartCountElement.textContent = count;
-                // Check login status
-                checkLoginStatus();
-            });
-        });
 
+        async function addtoCart01(product) {
+            try {
+                const response = await fetch("http://192.168.11.72:4000/addtocart", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(product),
+                });
+
+                const result = await response.json();
+                console.log("Success:", result);
+            } catch (error) {
+                console.error("Error adding to cart:", error);
+            }
+        }
         // Example function to check logged-in status from the database
         async function checkLoginStatus() {
             try {
@@ -158,19 +331,56 @@
 
                     // Add onclick attribute
                     cart.onclick = function () {
+                        console.log("hi");
                         // Your onclick event handler logic goes here
                         // For example, you can call a function to handle the click event
-                        addToCart();
+                        // addToCart();
+                        addToCartButtons.forEach(button => {
+                            button.addEventListener('click', () => {
+                                // Increment count
+                                count++;
+                                // Update count in the shopping cart icon
+                                cartCountElement.textContent = count;
+                                // Check login status
+                                const product = {
+                                    product_name: button.dataset.productName,
+                                    product_spec: button.dataset.productSpec,
+                                    product_image: button.dataset.productImage,
+                                    count: count
+                                };
+                                console.log(product);
+                                addtoCart01(product);
+                            });
+                        });
                     };
 
                     // Function to handle the "Add to Cart" click event
-                    function addToCart() {
-                        // Increment the count and update the cart count display
-                        count++;
-                        cartCountElement.textContent = count;
-                        // Check login status
-                        checkLoginStatus();
-                    }
+                    // function addToCart() {
+                    //     // // Increment the count and update the cart count display
+                    //     // count++;
+                    //     // cartCountElement.textContent = count;
+                    //     // // Check login status
+                    //     // checkLoginStatus();
+                    //     addToCartButtons.forEach(button => {
+                    //         button.addEventListener('click', () => {
+                    //             // Increment count
+                    //             count++;
+                    //             // Update count in the shopping cart icon
+                    //             cartCountElement.textContent = count;
+                    //             // Check login status
+                    //             const product = {
+                    //                 product_name: button.dataset.productName,
+                    //                 product_spec: button.dataset.productSpec,
+                    //                 product_image: button.dataset.productImage,
+                    //                 count: count
+                    //             };
+                    //             console.log(product);
+                    //             addtoCart01(product);
+                    //         });
+                    //     });
+
+
+                    // }
 
                     // Append elements to card
                     card.appendChild(img);
@@ -189,8 +399,8 @@
                 console.error('Error fetching data:', error);
             });
 
-        
-    </script>
+
+    </script> -->
 </body>
 
 </html>
