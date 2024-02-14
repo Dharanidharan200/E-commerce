@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products</title>
+    <link rel="stylesheet" href="product.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <nav>
+        <p>E-COM</p>
+        <div id="topnavcontent">
+            <div class="cart">
+                <a class="fa fa-shopping-cart" id="carticon" onclick="checkLoginStatus()"></a>
+                <span class="count" id="cart-count">0</span>
+
+            </div>
+            <ul style="margin: 0; padding-left: 3px;">
+                <li id="topnav" class="big-screens">
+                    <div id="side-nav" class="sidenav">
+                        <div class="nav__wrap">
+                            <div class="nav__list">
+                                <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+                            </div>
+                            <a class="nav__list" href="#" style="color: #0197a3;">Home</a>
+                            <a class="nav__list" href="#">Store</a>
+                            <a class="nav__list" href="#">About Us</a>
+                        </div>
+                    </div>
+                    <a class="icon" onclick="openNav()">
+                        <i class="fa fa-bars"></i>
+                    </a>
+                </li>
+
+
+            </ul>
+        </div>
+        
+    </nav>
+
+    <div class="prod-card01" id="product-list"></div>
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 style="text-align: center;">Login or Sign Up</h2><br>
+            <!-- Your login/signup form goes here -->
+            <form id="loginForm">
+                <div id="textarea"> <input type="text" id="username" name="username" placeholder="Username">
+                    <input type="password" id="password" name="password" placeholder="password">
+                </div>
+
+                <p id="forgotpassword">Forgot password?</p>
+
+                <button type="button" id="popuplogin" onclick="login()">Login</button>
+                <button type="button" id="popuplogin" onclick="login()">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openNav() {
+            document.getElementById("side-nav").classList.add('sidenav_open');
+        }
+        function closeNav() {
+            document.getElementById("side-nav").classList.remove('sidenav_open');
+        }
+        // Find the cart count and icon elements
+        const cartCountElement = document.getElementById('cart-count');
+
+        // Initialize count
+        let count = parseInt(cartCountElement.textContent);
+
+        // Find the "Add to Cart" buttons
+        const addToCartButtons = document.querySelectorAll('.addcart_buy02');
+
+        // Add click event listener to each "Add to Cart" button
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Increment count
+                count++;
+                // Update count in the shopping cart icon
+                cartCountElement.textContent = count;
+                // Check login status
+                checkLoginStatus();
+            });
+        });
+
+        // Example function to check logged-in status from the database
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('http://192.168.11.72:4000/check-login');
+                const data = await response.json();
+                if (data.loggedIn) {
+                    // User is logged in, redirect to cart page
+                    window.location.href = '/cart.html';
+                } else {
+                    openModal();
+                    // User is not logged in, show pop-up for login/signup
+                    // You can implement your modal/pop-up logic here
+                    // Example: showLoginModal();
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+            }
+        }
+        function openModal() {
+            const modal = document.getElementById('myModal');
+            modal.style.display = 'block';
+        }
+
+        // Function to close the login modal
+        function closeModal() {
+            const modal = document.getElementById('myModal');
+            modal.style.display = 'none';
+        }
+
+        // Fetch data from JSON API
+        fetch('http://192.168.11.72:4000/getproductdetails')
+            .then(response => response.json())
+            .then(data => {
+                const productList = document.getElementById('product-list');
+                // Iterate through each product and create a card
+                data.forEach(product => {
+                    // Create card element
+                    const card = document.createElement('div');
+                    card.classList.add('prod-card');
+
+
+                    // Create image element
+                    const img = document.createElement('img');
+                    img.classList.add('image');
+                    img.src = product.image_path.image; // Using the correct path from the JSON
+                    img.alt = product.product_name;
+
+                    // Create heading for product name
+                    const name = document.createElement('h2');
+                    name.textContent = product.product_name;
+
+                    // Create paragraph for product spec
+                    const spec = document.createElement('p');
+                    spec.textContent = `Spec: ${product.product_spec}`;
+
+                    // Create paragraph for product cost
+                    const cost = document.createElement('p');
+                    cost.textContent = `Cost: RS.${product.product_cost}`;
+
+                    // const buy = document.createElement('button');
+                    // buy.classList.add('addcart_buy01');
+                    // buy.textContent = 'Buy now'
+                    const cart = document.createElement('button');
+                    cart.classList.add('addcart_buy02');
+                    cart.textContent = 'Add to Cart';
+
+                    // Add onclick attribute
+                    cart.onclick = function () {
+                        // Your onclick event handler logic goes here
+                        // For example, you can call a function to handle the click event
+                        addToCart();
+                    };
+
+                    // Function to handle the "Add to Cart" click event
+                    function addToCart() {
+                        // Increment the count and update the cart count display
+                        count++;
+                        cartCountElement.textContent = count;
+                        // Check login status
+                        checkLoginStatus();
+                    }
+
+                    // Append elements to card
+                    card.appendChild(img);
+                    card.appendChild(name);
+                    card.appendChild(spec);
+                    card.appendChild(cost);
+                    // card.appendChild(buy)
+                    card.appendChild(cart)
+
+
+                    // Append card to product list
+                    productList.appendChild(card);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+
+        
+    </script>
+</body>
+
+</html>
