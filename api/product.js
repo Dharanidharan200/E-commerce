@@ -5,12 +5,14 @@ const { pool } = require('./config/config');
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
+
 app.use(cors());
 
 app.get('/getproductdetails', async (req, res) => {
     try {
         const data = await pool.query('SELECT * FROM product_details');
-        console.log(data.rows);
+        // console.log(data.rows);
         res.json(data.rows);
     } catch (error) {
         console.error('Error fetching product details:', error);
@@ -18,15 +20,27 @@ app.get('/getproductdetails', async (req, res) => {
     }
 });
 
+
 app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    var { emailid, password } = req.body;
+    console.log(req.body);
     try {
-        const user = await pool.query("SELECT * FROM users WHERE emailid = $1", [username]);
-        if (user.rows.length > 0 && user.rows[0].password === password) {
-            await pool.query("UPDATE users SET logged_in = true WHERE emailid = $1", [username]);
-            res.status(200).json({ success: true, message: 'Logged in successfully' });
+        var user = await pool.query("SELECT * FROM user_details WHERE email_id = $1", [emailid]);
+
+        if (user.rows.length > 0) {
+            var hashedPassword = user.rows[0].password;
+
+            // Compare the provided password with the hashed password from the database
+            var passwordMatch = bcrypt.compare(hashedPassword, password);
+            if (passwordMatch) {
+                ;
+                await pool.query("UPDATE user_details SET logged_in = true WHERE email_id = $1", [emailid]);
+                res.status(200).json({ emailid: user.rows[0].email_id, username: user.rows[0].username, success: true, message: 'Logged in successfully', cart_count: user.rows[0].cart_count });
+            } else {
+                res.status(200).json({ success: false, message: 'Invalid username or password' });
+            }
         } else {
-            res.status(401).json({ success: false, message: 'Invalid username or password' });
+            res.status(200).json({ success: false, message: 'Invalid username or password' });
         }
     } catch (error) {
         console.error('Error logging in:', error);
@@ -34,10 +48,11 @@ app.post('/login', async (req, res) => {
     }
 });
 
+
 app.post('/logout', async (req, res) => {
-    const { username } = req.body;
+    const { emailid } = req.body;
     try {
-        await pool.query("UPDATE users SET logged_in = false WHERE emailid = $1", [username]);
+        await pool.query("UPDATE user_details SET logged_in = false WHERE email_id = $1", [emailid]);
         res.status(200).json({ success: true, message: 'Logged out successfully' });
     } catch (error) {
         console.error('Error logging out:', error);
@@ -45,10 +60,12 @@ app.post('/logout', async (req, res) => {
     }
 });
 
-app.get('/check-login', async (req, res) => {
-    const { username } = req.query;
+app.post('/check-login', async (req, res) => {
+    const { emailid } = req.body;
+
     try {
-        const user = await pool.query("SELECT * FROM users WHERE emailid = $1", [username]);
+        const user = await pool.query("SELECT * FROM user_details WHERE email_id = $1", [emailid]);
+        console.log(user.rows, "check login");
         if (user.rows.length > 0 && user.rows[0].logged_in) {
             res.json({ loggedIn: true });
         } else {
@@ -60,13 +77,48 @@ app.get('/check-login', async (req, res) => {
     }
 });
 
-app.post('/addtocart', async(req,res)=>{
+
+app.post('/signup', async (req, res) => {
     try {
+
+        const { emailid, password, username } = req.body; // Changed emailid to email for better readability
         console.log(req.body);
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the saltRounds
+
+        // Insert user details into the database
+        await pool.query('INSERT INTO user_details(email_id, password, username) VALUES($1, $2, $3)', [emailid, hashedPassword, username]);
+
+        console.log("Successfully Inserted");
+        res.status(201).send({ success: true, message: "Account Created Successfully" });
     } catch (error) {
-        
+        console.error("Error during sign up:", error);
+        res.status(500).send({ success: false, message: "Account creation failed. Please try again later" });
     }
-})
+});
+
+app.post('/addtocart', async (req, res) => {
+    try {
+      const { emailid, product, username } = req.body;
+      let last_updated_dttm = new Date();
+      console.log(req.body);
+      await pool.query(
+        "UPDATE user_details SET product_details = product_details || $1::jsonb[], cart_count = $2, last_updated_by = $3, last_updated_dttm = $4 WHERE email_id = $5",
+        [[JSON.stringify(product)], product.total_count, username, last_updated_dttm, emailid]
+      );
+      
+      
+  
+      console.log("success");
+      res.send({ "success": "Cart added Successfully" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error.message);
+    }
+  });
+  
+
 app.listen(4000, () => {
     console.log('App Running on port: 4000');
 });

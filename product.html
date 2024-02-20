@@ -7,6 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products</title>
     <link rel="stylesheet" href="product.css" />
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
@@ -15,7 +20,7 @@
         <p>E-COM</p>
         <div id="topnavcontent">
             <div class="cart">
-                <a class="fa fa-shopping-cart" id="carticon" onclick="checkLoginStatus01()"></a>
+                <a class="fa fa-shopping-cart" id="carticon" onclick="checkLoginStatus()"></a>
                 <span class="count" id="cart-count">0</span>
 
             </div>
@@ -29,6 +34,17 @@
                             <a class="nav__list" href="#" style="color: #0197a3;">Home</a>
                             <a class="nav__list" href="#">Store</a>
                             <a class="nav__list" href="#">About Us</a>
+                            <a class="nav__list" id="login_register" onclick="checkLoginStatus()">Login/Register</a>
+                            <div class="dropdown">
+                                <a class="nav__list" id="user_name">
+                                </a>
+                                <div class="dropdown-content" id="dropdown-content">
+                                    <a href="#" onclick="logout()">Logout</a>
+                                    <a href="#">Link 2</a>
+                                    <a href="#">Link 3</a>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                     <a class="icon" onclick="openNav()">
@@ -50,20 +66,55 @@
             <h2 style="text-align: center;">Login or Sign Up</h2><br>
             <!-- Your login/signup form goes here -->
             <form id="loginForm">
-                <div id="textarea"> <input type="text" id="username" name="username" placeholder="Username">
+                <div id="textarea"> <input type="text" id="emailid" name="emailid" placeholder="emailid">
                     <input type="password" id="password" name="password" placeholder="password">
                 </div>
 
                 <p id="forgotpassword">Forgot password?</p>
 
                 <button type="button" id="popuplogin" onclick="login()">Login</button>
-                <button type="button" id="popuplogin" onclick="login()">Sign Up</button>
+                <button type="button" id="popupsignup" onclick="openSignUpModal()">Sign Up</button>
+
+            </form>
+        </div>
+    </div>
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSignUpModal()">&times;</span>
+            <h2 style="text-align: center;">Sign up</h2><br>
+            <form id="loginForm">
+                <div id="textarea">
+                    <input type="text" id="signup_username" name="username" placeholder="Your Name">
+                    <input type="email" id="signup_emailid" name="emailid" placeholder="Email id">
+                    <input type="password" id="signup_password" name="password" placeholder="Password">
+
+                </div>
+                <button type="button" id="popupsignup" onclick="signup()">Sign Up</button>
+
             </form>
         </div>
     </div>
     <script>
         let product = {};
+        let count = 0
+        productdetails()
 
+        function checkLoggedInUser() {
+            const username = localStorage.getItem("username");
+            const emailid = localStorage.getItem("emailid");
+            const cart_count = localStorage.getItem("cart-count");
+            if (username) {
+                document.getElementById('login_register').style.display = "none";
+                document.getElementById('user_name').innerHTML = '<i class="fas fa-user"></i> &nbsp' + username;
+            }
+        }
+
+        // Call the function when the page is loaded
+        window.onload = function () {
+            checkLoggedInUser();
+            cartcount()
+
+        };
         function openNav() {
             document.getElementById("side-nav").classList.add('sidenav_open');
         }
@@ -71,336 +122,275 @@
         function closeNav() {
             document.getElementById("side-nav").classList.remove('sidenav_open');
         }
+        function openModal() {
+            const modal = document.getElementById('myModal');
+            modal.style.display = 'block';
+        }
 
-        // Find the cart count and icon elements
-        const cartCountElement = document.getElementById('cart-count');
+        // Function to close the login modal
+        function closeModal() {
+            const modal = document.getElementById('myModal');
+            modal.style.display = 'none';
+        }
+        function openSignUpModal() {
+            const modal = document.getElementById('signupModal');
+            modal.style.display = 'block';
+            closeModal()
+        }
+        function closeSignUpModal() {
+            const modal = document.getElementById('signupModal');
+            modal.style.display = 'none';
+        }
 
-        // Initialize count
-        let count = parseInt(cartCountElement.textContent);
-        console.log(parseInt(cartCountElement.textContent));
-        // Find the "Add to Cart" buttons
-        const addToCartButtons = document.querySelectorAll('.addcart_buy02');
 
         // Function to handle the "Add to Cart" click event
         function addToCart(product) {
-            // Increment count
             count++;
-            // Update count in the shopping cart icon
-            // cartCountElement.textContent = count;
-            // Check login status
+            // Update cart-count in local storage
+            localStorage.setItem("cart-count", count);
             console.log(product);
+            // Disable the button temporarily to prevent multiple clicks
+            this.disabled = true;
             checkLoginStatus(product);
         }
 
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const product = {
-                    product_name: button.dataset.productName,
-                    product_spec: button.dataset.productSpec,
-                    product_image: button.dataset.productImage,
-                    count: count
-                };
-                addToCart(product);
+        // Find the cart count and icon elements
+        function cartcount() {
+            const cartCountElement = document.getElementById('cart-count');
+            count = parseInt(localStorage.getItem("cart-count")) || 0;
+            cartCountElement.textContent = count;
+
+            // Update the cart count element
+            const addToCartButtons = document.querySelectorAll('.addcart_buy02');
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    console.log(count, "jjj");
+                    const product = {
+                        product_id: button.dataset.productId,
+                        total_count: count
+                    };
+                    addToCart(product);
+                });
             });
-        });
-        async function checkLoginStatus01() {
+        }
+
+
+        function logout() {
+            localStorage.removeItem("username");
+            localStorage.removeItem("emailid");
+            localStorage.removeItem("cart-count");
+            document.getElementById('login_register').style.display = "unset";
+            document.getElementById('dropdown-content').style.display = "none";
+
+            document.getElementById('user_name').innerHTML = "";
+            // Clear the cart count element on the page
+            const cartCountElement = document.getElementById('cart-count');
+            cartCountElement.textContent = 0;
+        }
+
+        //************************************Api Starts************************************//
+
+
+        //******************************1.Retrive Product Details******************************//
+        async function productdetails() {
+            // Fetch data from JSON API
+            fetch('http://192.168.11.72:4000/getproductdetails')
+                .then(response => response.json())
+                .then(data => {
+                    const productList = document.getElementById('product-list');
+                    // Iterate through each product and create a card
+                    data.forEach(product => {
+                        // Create card element
+                        const card = document.createElement('div');
+                        card.classList.add('prod-card');
+
+                        // Create image element
+                        const img = document.createElement('img');
+                        img.classList.add('image');
+                        img.src = product.image_path.image; // Using the correct path from the JSON
+                        img.alt = product.product_name;
+
+                        // Create heading for product name
+                        const name = document.createElement('h2');
+                        name.textContent = product.product_name;
+
+                        // Create paragraph for product spec
+                        const spec = document.createElement('p');
+                        spec.textContent = `Spec: ${product.product_spec}`;
+
+                        // Create paragraph for product cost
+                        const cost = document.createElement('p');
+                        cost.textContent = `Cost: RS.${product.product_cost}`;
+
+                        const cart = document.createElement('button');
+                        cart.classList.add('addcart_buy02');
+                        cart.textContent = 'Add to Cart';
+
+                        // Set data attributes for the product
+                        // cart.dataset.productName = product.product_name;
+                        // cart.dataset.productSpec = product.product_spec;
+                        // cart.dataset.productImage = product.product_image;
+                        cart.dataset.productId = product.product_id
+
+                        // Append elements to card
+                        card.appendChild(img);
+                        card.appendChild(name);
+                        card.appendChild(spec);
+                        card.appendChild(cost);
+                        card.appendChild(cart);
+
+                        // Append card to product list
+                        productList.appendChild(card);
+                    });
+
+                    // Update the cart count and click event after rendering products
+                    cartcount();
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        // //******************************2.Login******************************//
+
+        async function login() {
+            let emailid = document.getElementById("emailid").value;
+            let password = document.getElementById("password").value;
+            var data = { emailid: emailid, password: password };
             try {
-                const response = await fetch('http://192.168.11.72:4000/check-login');
-                const data = await response.json();
-                if (data.loggedIn) {
-                    // User is logged in, redirect to cart page
-                    window.location.href = '/cart.html';
+                const response = await fetch("http://192.168.11.72:4000/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    localStorage.setItem("username", result.username)
+                    localStorage.setItem("emailid", result.emailid)
+                    localStorage.setItem("cart-count", result.cart_count)
+
+                    console.log(result);
+                    // Show success message using toastr
+                    toastr.success('Login successful');
+                    document.getElementById('emailid').value = '';
+                    document.getElementById('password').value = '';
+                    closeModal()
+                    //
+                    const cartCountElement = document.getElementById('cart-count');
+                    cartCountElement.textContent = result.cart_count;
+                    document.getElementById("login_register").style.display = "none"
+                    // document.getElementById("user_name").style.display = "block"
+                    document.getElementById('user_name').innerHTML = '<i class="fas fa-user"></i> &nbsp' + localStorage.getItem("username");
+
+
+
                 } else {
-                    openModal();
-                    // User is not logged in, show pop-up for login/signup
-                    // You can implement your modal/pop-up logic here
-                    // Example: showLoginModal();
+                    // Show error message using toastr
+                    toastr.error(result.message);
+
+
                 }
             } catch (error) {
-                console.error('Error checking login status:', error);
+                console.error("Error during login:", error);
+                // Show error message using toastr
+                toastr.error("Error during login. Please try again later.");
             }
         }
-        // Example function to check logged-in status from the database
+
+
+        //******************************3.Login status******************************//
+
         async function checkLoginStatus(product) {
             try {
-                const response = await fetch('http://192.168.11.72:4000/check-login');
-                const data = await response.json();
-                if (data.loggedIn) {
-                    // User is logged in, redirect to cart page
-                    window.location.href = '/cart.html';
-                } else {
-                    openModal();
-                    // User is not logged in, show pop-up for login/signup
-                    // You can implement your modal/pop-up logic here
-                    // Example: showLoginModal();
+                const username = localStorage.getItem("username");
+                const emailid = localStorage.getItem("emailid");
+                const cart_count = localStorage.getItem("cart-count");
+                console.log(cart_count);
+                const data = { emailid: emailid }
+                const response = await fetch("http://192.168.11.72:4000/check-login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                });
+                const result = await response.json();
+                if (result.loggedIn) {
                     addtoCart01(product);
+                    // User is logged in, redirect to cart page
+                    // window.location.href = '/cart.html';
+                } else {
+
+                    openModal();
+
                 }
             } catch (error) {
                 console.error('Error checking login status:', error);
             }
         }
+        //******************************4.Sign up******************************//
+        async function signup() {
+            try {
+                let emailid = document.getElementById("signup_emailid").value;
+                let password = document.getElementById("signup_password").value;
+                let username = document.getElementById("signup_username").value;
+                const data = { username: username, emailid: emailid, password: password }
+                console.log(data);
 
-        function openModal() {
-            const modal = document.getElementById('myModal');
-            modal.style.display = 'block';
-        }
-
-        // Function to close the login modal
-        function closeModal() {
-            const modal = document.getElementById('myModal');
-            modal.style.display = 'none';
-        }
-
-        // Fetch data from JSON API
-        fetch('http://192.168.11.72:4000/getproductdetails')
-            .then(response => response.json())
-            .then(data => {
-                const productList = document.getElementById('product-list');
-                // Iterate through each product and create a card
-                data.forEach(product => {
-                    // Create card element
-                    const card = document.createElement('div');
-                    card.classList.add('prod-card');
-
-                    // Create image element
-                    const img = document.createElement('img');
-                    img.classList.add('image');
-                    img.src = product.image_path.image; // Using the correct path from the JSON
-                    img.alt = product.product_name;
-
-                    // Create heading for product name
-                    const name = document.createElement('h2');
-                    name.textContent = product.product_name;
-
-                    // Create paragraph for product spec
-                    const spec = document.createElement('p');
-                    spec.textContent = `Spec: ${product.product_spec}`;
-
-                    // Create paragraph for product cost
-                    const cost = document.createElement('p');
-                    cost.textContent = `Cost: RS.${product.product_cost}`;
-
-                    const cart = document.createElement('button');
-                    cart.classList.add('addcart_buy02');
-                    cart.textContent = 'Add to Cart';
-
-                    // Add onclick attribute
-                    cart.onclick = function () {
-                        product = {
-                            product_name: product.product_name,
-                            product_spec: product.product_spec,
-                            product_image: product.product_image,
-                            count: count
-                        };
-                        addToCart(product);
-                    };
-
-                    // Append elements to card
-                    card.appendChild(img);
-                    card.appendChild(name);
-                    card.appendChild(spec);
-                    card.appendChild(cost);
-                    card.appendChild(cart);
-
-                    // Append card to product list
-                    productList.appendChild(card);
+                const response = await fetch("http://192.168.11.72:4000/signup", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
                 });
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+                const result = await response.json();
+                if (result.success) {
+                    console.log(result);
+                    // Show success message using toastr
+                    toastr.success(result.message);
+                    closeSignUpModal()
+
+                } else {
+                    // Show error message using toastr
+                    toastr.error(result.message);
+                }
+            } catch (error) {
+                console.error("Error during signup:", error);
+            }
+        }
+
+        //******************************5.Add to cart******************************//
 
         async function addtoCart01(product) {
             try {
+                const emailid = localStorage.getItem("emailid");
+                const username = localStorage.getItem("username");
+                console.log(product);
+                const data = { emailid: emailid, product: product, username: username }
                 const response = await fetch("http://192.168.11.72:4000/addtocart", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(product),
+                    body: JSON.stringify(data),
                 });
 
                 const result = await response.json();
+
                 console.log("Success:", result);
             } catch (error) {
                 console.error("Error adding to cart:", error);
             }
         }
+        //************************************Api Ends************************************//
 
     </script>
-    <!-- <script>
-        let product={}
-        function openNav() {
-            document.getElementById("side-nav").classList.add('sidenav_open');
-        }
-        function closeNav() {
-            document.getElementById("side-nav").classList.remove('sidenav_open');
-        }
-        // Find the cart count and icon elements
-        const cartCountElement = document.getElementById('cart-count');
-
-        // Initialize count
-        let count = parseInt(cartCountElement.textContent);
-
-        // Find the "Add to Cart" buttons
-        const addToCartButtons = document.querySelectorAll('.addcart_buy02');
-
-        // Add click event listener to each "Add to Cart" button
-
-        async function addtoCart01(product) {
-            try {
-                const response = await fetch("http://192.168.11.72:4000/addtocart", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(product),
-                });
-
-                const result = await response.json();
-                console.log("Success:", result);
-            } catch (error) {
-                console.error("Error adding to cart:", error);
-            }
-        }
-        // Example function to check logged-in status from the database
-        async function checkLoginStatus() {
-            try {
-                const response = await fetch('http://192.168.11.72:4000/check-login');
-                const data = await response.json();
-                if (data.loggedIn) {
-                    // User is logged in, redirect to cart page
-                    window.location.href = '/cart.html';
-                } else {
-                    openModal();
-                    // User is not logged in, show pop-up for login/signup
-                    // You can implement your modal/pop-up logic here
-                    // Example: showLoginModal();
-                }
-            } catch (error) {
-                console.error('Error checking login status:', error);
-            }
-        }
-        function openModal() {
-            const modal = document.getElementById('myModal');
-            modal.style.display = 'block';
-        }
-
-        // Function to close the login modal
-        function closeModal() {
-            const modal = document.getElementById('myModal');
-            modal.style.display = 'none';
-        }
-
-        // Fetch data from JSON API
-        fetch('http://192.168.11.72:4000/getproductdetails')
-            .then(response => response.json())
-            .then(data => {
-                const productList = document.getElementById('product-list');
-                // Iterate through each product and create a card
-                data.forEach(product => {
-                    // Create card element
-                    const card = document.createElement('div');
-                    card.classList.add('prod-card');
 
 
-                    // Create image element
-                    const img = document.createElement('img');
-                    img.classList.add('image');
-                    img.src = product.image_path.image; // Using the correct path from the JSON
-                    img.alt = product.product_name;
-
-                    // Create heading for product name
-                    const name = document.createElement('h2');
-                    name.textContent = product.product_name;
-
-                    // Create paragraph for product spec
-                    const spec = document.createElement('p');
-                    spec.textContent = `Spec: ${product.product_spec}`;
-
-                    // Create paragraph for product cost
-                    const cost = document.createElement('p');
-                    cost.textContent = `Cost: RS.${product.product_cost}`;
-
-                    // const buy = document.createElement('button');
-                    // buy.classList.add('addcart_buy01');
-                    // buy.textContent = 'Buy now'
-                    const cart = document.createElement('button');
-                    cart.classList.add('addcart_buy02');
-                    cart.textContent = 'Add to Cart';
-
-                    // Add onclick attribute
-                    cart.onclick = function () {
-                        console.log("hi");
-                        // Your onclick event handler logic goes here
-                        // For example, you can call a function to handle the click event
-                        // addToCart();
-                        addToCartButtons.forEach(button => {
-                            button.addEventListener('click', () => {
-                                // Increment count
-                                count++;
-                                // Update count in the shopping cart icon
-                                cartCountElement.textContent = count;
-                                // Check login status
-                                const product = {
-                                    product_name: button.dataset.productName,
-                                    product_spec: button.dataset.productSpec,
-                                    product_image: button.dataset.productImage,
-                                    count: count
-                                };
-                                console.log(product);
-                                addtoCart01(product);
-                            });
-                        });
-                    };
-
-                    // Function to handle the "Add to Cart" click event
-                    // function addToCart() {
-                    //     // // Increment the count and update the cart count display
-                    //     // count++;
-                    //     // cartCountElement.textContent = count;
-                    //     // // Check login status
-                    //     // checkLoginStatus();
-                    //     addToCartButtons.forEach(button => {
-                    //         button.addEventListener('click', () => {
-                    //             // Increment count
-                    //             count++;
-                    //             // Update count in the shopping cart icon
-                    //             cartCountElement.textContent = count;
-                    //             // Check login status
-                    //             const product = {
-                    //                 product_name: button.dataset.productName,
-                    //                 product_spec: button.dataset.productSpec,
-                    //                 product_image: button.dataset.productImage,
-                    //                 count: count
-                    //             };
-                    //             console.log(product);
-                    //             addtoCart01(product);
-                    //         });
-                    //     });
-
-
-                    // }
-
-                    // Append elements to card
-                    card.appendChild(img);
-                    card.appendChild(name);
-                    card.appendChild(spec);
-                    card.appendChild(cost);
-                    // card.appendChild(buy)
-                    card.appendChild(cart)
-
-
-                    // Append card to product list
-                    productList.appendChild(card);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
-
-
-    </script> -->
 </body>
 
 </html>
