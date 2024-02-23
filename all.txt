@@ -1,0 +1,26 @@
+   const quantityContainer = document.createElement('div');
+                    quantityContainer.classList.add('quantity-container');
+    
+                    // Create decrease button
+                    const decreaseButton = document.createElement('button');
+                    decreaseButton.classList.add('decrease');
+                    decreaseButton.textContent = '-';
+                    quantityContainer.appendChild(decreaseButton);
+    
+                    // Create quantity input
+                    const quantity = document.createElement('input');
+                    quantity.classList.add('numberstyle');
+                    quantity.type = "number";
+                    quantity.min = "1";
+                    quantity.step = "1";
+                    quantity.value = product.count; // Assuming product.count holds the quantity
+                    quantityContainer.appendChild(quantity);
+    
+                    // Create increase button
+                    const increaseButton = document.createElement('button');
+                    increaseButton.classList.add('increase');
+                    increaseButton.textContent = '+';
+                    quantityContainer.appendChild(increaseButton);
+    
+                    // Append quantity container to card
+                    card.appendChild(quantityContainer);

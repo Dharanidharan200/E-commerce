@@ -1,12 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart</title>
+    <link rel="stylesheet" href="product.css" />
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 </head>
+
 <body>
-    
+    <nav>
+        <p>E-COM</p>
+        <div id="topnavcontent">
+            <div class="cart">
+                <a class="nav__list" href="#"
+                    style="color: #0197a3; font-weight: bold; padding: 0px !important;">Cart</a>
+                <a class="fa fa-shopping-cart" id="carticon"
+                    style="color: #0197a3;padding: 0px 10px 0px 0px !important;" onclick="cart_details()"></a>
+            </div>
+            <ul style="margin: 0; padding-left: 3px;">
+                <li id="topnav" class="big-screens">
+                    <div id="side-nav" class="sidenav">
+                        <div class="nav__wrap">
+                            <div class="nav__list">
+                                <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+                            </div>
+                            <a class="nav__list" href="product.html">Home</a>
+                            <a class="nav__list" href="#">Store</a>
+                            <a class="nav__list" href="#">About Us</a>
+
+                            <div class="dropdown">
+                                <a class="nav__list" id="user_name">
+                                </a>
+                                <div class="dropdown-content" id="dropdown-content">
+                                    <a href="#" onclick="logout()">Logout</a>
+                                    <a href="#">Link 2</a>
+                                    <a href="#">Link 3</a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <a class="icon" onclick="openNav()">
+                        <i class="fa fa-bars"></i>
+                    </a>
+                </li>
+
+
+            </ul>
+        </div>
+
+    </nav>
+    <div class="all_content">
+        <div id="yourcart">
+            <h2>Your Cart</h2>
+            <div id="cart-content01">
+            </div>
+        </div>
+        <div class="buy_process">
+            <div class="card">
+                <div class="container">
+                    <h4 id="subtotal"><b>Subtotal</b></h4>
+                     <p id="total_item"></p> 
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Get the username and emailid from the URL
+        let productcount;
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        const emailid = urlParams.get('emailid');
+        document.getElementById('user_name').innerHTML = '<i class="fas fa-user"></i> &nbsp' + username;
+
+        cartdetails(emailid);
+
+        async function cartdetails(emailid) {
+            try {
+                const data = { emailid: emailid };
+
+                const response = await fetch('http://192.168.11.72:4000/cart_details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+                const productList = document.getElementById('cart-content01');
+                productcount = result.length
+                document.getElementById('total_item').textContent = `Total Item:${productcount}`
+                // Clear previous content
+                productList.innerHTML = '';
+                // Iterate through each product and create a card
+                // Iterate through each product and create a card
+                result.forEach(product => {
+                    // Create card element
+                    const card = document.createElement('div');
+                    card.classList.add('prod-card02');
+
+                    // Create container for name and spec
+                    const infoContainer01 = document.createElement('div');
+                    infoContainer01.classList.add('info-container01');  // Container for name and spec
+
+                    const infoContainer02 = document.createElement('div');
+                    infoContainer02.classList.add('info-container02');  // Container for image and infoContainer01
+
+                    // Create image element
+                    const img = document.createElement('img');
+                    img.classList.add('image');
+                    img.src = product.image_path.image; // Using the correct path from the JSON
+                    img.alt = product.product_name;
+
+                    // Create heading for product name
+                    const name = document.createElement('h2');
+                    name.classList.add('cart_prod_name');
+                    name.textContent = product.product_name;
+
+                    // Create paragraph for product spec
+                    const spec = document.createElement('p');
+                    spec.textContent = `Spec: ${product.product_spec}`;
+
+                    const quantityContainer = document.createElement('div');
+                    quantityContainer.classList.add('quantity-container');
+
+                    // Create decrease button
+                    const decreaseButton = document.createElement('button');
+                    decreaseButton.classList.add('decrease');
+                    decreaseButton.textContent = '-';
+                    quantityContainer.appendChild(decreaseButton);
+
+                    // Create quantity input
+                    const quantity = document.createElement('input');
+                    quantity.classList.add('numberstyle');
+                    quantity.type = "number";
+                    quantity.min = "1";
+                    quantity.step = "1";
+                    quantity.value = product.count; // Assuming product.count holds the quantity
+                    quantityContainer.appendChild(quantity);
+
+                    // Create increase button
+                    const increaseButton = document.createElement('button');
+                    increaseButton.classList.add('increase');
+                    increaseButton.textContent = '+';
+                    quantityContainer.appendChild(increaseButton);
+
+                    // Append quantity container to card
+                    // Create paragraph for product cost
+                    const cost = document.createElement('b');
+                    cost.classList.add('cart_cost');
+                    cost.textContent = `  RS.${product.product_cost}`;
+
+                    // Append name and spec to info container
+                    infoContainer01.appendChild(name);
+                    infoContainer01.appendChild(spec);
+
+                    // Append img and infoContainer01 to infoContainer02
+                    infoContainer02.appendChild(img);
+                    infoContainer02.appendChild(infoContainer01);
+                    quantityContainer.appendChild(cost)
+                    // Append elements to card
+                    card.appendChild(infoContainer02);
+                    card.appendChild(quantityContainer);
+                    // card.appendChild(cost);
+
+                    // Append card to product list
+                    productList.appendChild(card);
+                });
+
+                // Update the cart count and click event after rendering products
+
+
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+
+    </script>
 </body>
+
 </html>

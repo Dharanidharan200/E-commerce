@@ -20,7 +20,7 @@
         <p>E-COM</p>
         <div id="topnavcontent">
             <div class="cart">
-                <a class="fa fa-shopping-cart" id="carticon" onclick="checkLoginStatus()"></a>
+                <a class="fa fa-shopping-cart" id="carticon" onclick="cart_details()"></a>
                 <span class="count" id="cart-count">0</span>
 
             </div>
@@ -143,17 +143,35 @@
         }
 
 
-        // Function to handle the "Add to Cart" click event
+
         function addToCart(product) {
-            count++;
+            const username = localStorage.getItem("username");
+            if (!username) {
+                // If not logged in, open the login modal
+                openModal();
+                return;
+            }
+            // Get the current cart count from localStorage
+            const cartCount = parseInt(localStorage.getItem("cart-count")) || 0;
+
+            // Update the cart count element on the page
+            const cartCountElement = document.getElementById('cart-count');
+
+            // Increase the count
+            const newCount = cartCount + 1;
+
             // Update cart-count in local storage
-            localStorage.setItem("cart-count", count);
-            console.log(product);
+            localStorage.setItem("cart-count", newCount);
+
+            // Update the cart count element text content
+            cartCountElement.textContent = newCount;
+
             // Disable the button temporarily to prevent multiple clicks
             this.disabled = true;
+
+            // Call the function to check login status and add to cart
             checkLoginStatus(product);
         }
-
         // Find the cart count and icon elements
         function cartcount() {
             const cartCountElement = document.getElementById('cart-count');
@@ -164,14 +182,13 @@
             const addToCartButtons = document.querySelectorAll('.addcart_buy02');
             addToCartButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    console.log(count, "jjj");
                     const product = {
                         product_id: button.dataset.productId,
-                        total_count: count
                     };
                     addToCart(product);
                 });
             });
+
         }
 
 
@@ -184,6 +201,7 @@
 
             document.getElementById('user_name').innerHTML = "";
             // Clear the cart count element on the page
+            console.log("logout");
             const cartCountElement = document.getElementById('cart-count');
             cartCountElement.textContent = 0;
         }
@@ -218,8 +236,9 @@
                         const spec = document.createElement('p');
                         spec.textContent = `Spec: ${product.product_spec}`;
 
+                        
                         // Create paragraph for product cost
-                        const cost = document.createElement('p');
+                        const cost = document.createElement('b');
                         cost.textContent = `Cost: RS.${product.product_cost}`;
 
                         const cart = document.createElement('button');
@@ -302,7 +321,6 @@
 
 
         //******************************3.Login status******************************//
-
         async function checkLoginStatus(product) {
             try {
                 const username = localStorage.getItem("username");
@@ -369,8 +387,18 @@
             try {
                 const emailid = localStorage.getItem("emailid");
                 const username = localStorage.getItem("username");
-                console.log(product);
-                const data = { emailid: emailid, product: product, username: username }
+
+                // Get the current cart count from localStorage
+                const cartCount = parseInt(localStorage.getItem("cart-count")) || 0;
+
+                // Include the cart count in the data object
+                const data = {
+                    emailid: emailid,
+                    product: product,
+                    username: username,
+                    cartCount: cartCount
+                };
+
                 const response = await fetch("http://192.168.11.72:4000/addtocart", {
                     method: "POST",
                     headers: {
@@ -386,6 +414,28 @@
                 console.error("Error adding to cart:", error);
             }
         }
+
+        //******************************6.cart******************************//
+        async function cart_details() {
+            try {
+                const username = localStorage.getItem("username");
+                const emailid = localStorage.getItem("emailid");
+
+                if (!username) {
+                    // If not logged in, open the login modal
+                    openModal();
+                } else {
+                    // If logged in, redirect to cart.html with username and emailid as query parameters
+                    const cartUrl = `cart.html?username=${encodeURIComponent(username)}&emailid=${encodeURIComponent(emailid)}`;
+                    window.location.href = cartUrl;
+                }
+            } catch (error) {
+                console.error('Error in cart_details:', error);
+            }
+        }
+
+
+
         //************************************Api Ends************************************//
 
     </script>
