@@ -41,7 +41,7 @@
                                 <a class="nav__list" id="user_name">
                                 </a>
                                 <div class="dropdown-content" id="dropdown-content">
-                                    <a href="#" onclick="logout()">Logout</a>
+                                    <a href="product.html" onclick="logout()">Logout</a>
                                     <a href="#">Link 2</a>
                                     <a href="#">Link 3</a>
                                 </div>
@@ -59,7 +59,15 @@
         </div>
 
     </nav>
-    <div class="all_content">
+    <div style="display: none;" id="empty_cart">
+        <image src="Images/empty-cart.png" alt="empty-cart" id="emptycartimage"></image>
+        <div class="empty_cart"><b> Your Cart is empty</b>
+
+        </div><br>
+        <button onclick="exploreOtherProducts()" id="empty_cart_button">Explore Other Products >></button>
+
+    </div>
+    <div class="all_content" id="all_content">
         <div id="yourcart">
             <h2>Your Cart</h2>
             <div id="cart-content01">
@@ -69,23 +77,58 @@
             <div class="card">
                 <div class="container">
                     <h4 id="subtotal"><b>Subtotal</b></h4>
-                     <p id="total_item"></p> 
-                    
+                    <hr id="subtotalhr">
                 </div>
+                <div id="totalcost">
+                    <p id="total_item"></p>
+                    <p id="prod_cart_list"></p>
+                </div>
+                <button id="buybutton" onclick="proccedbuy()">Proceed to buy</button>
             </div>
+        </div>
+    </div>
+
+    <div id="confirmation" style="display: none;" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="no()">&times;</span>
+            <h2 style="text-align: center;">Are you sure want to proceed payment</h2><br>
+            <button type="button" id="popupsignup" onclick="yes()">Yes</button>
+            <button type="button" id="popupsignup" onclick="no()">No</button>
+
         </div>
     </div>
 
 
     <script>
         // Get the username and emailid from the URL
-        let productcount;
+        let productcount, quantityInput;
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get('username');
         const emailid = urlParams.get('emailid');
         document.getElementById('user_name').innerHTML = '<i class="fas fa-user"></i> &nbsp' + username;
 
         cartdetails(emailid);
+        function exploreOtherProducts() {
+            window.location.href = 'product.html';
+        }
+        function proccedbuy() {
+            document.getElementById('confirmation').style.display = 'block'
+        }
+        function no() {
+            document.getElementById('confirmation').style.display = 'none'
+        }
+        function yes() {
+            // Get the total cost from the displayed element
+            const totalCostElement = document.getElementById('prod_cart_list');
+            const totalCostText = totalCostElement.textContent;
+
+            // Extract the total cost value (assuming the format is "Total Cost: ₹ {amount}")
+            const totalCost = parseFloat(totalCostText.split('₹')[1].trim());
+            
+            // Perform the redirection to Razorpay with the total amount
+            // Replace the following URL with the actual Razorpay payment URL and parameters
+            window.location.href = `https://example.com/razorpay/payment?amount=${totalCost}`;
+        }
 
         async function cartdetails(emailid) {
             try {
@@ -102,93 +145,165 @@
                 const result = await response.json();
                 const productList = document.getElementById('cart-content01');
                 productcount = result.length
-                document.getElementById('total_item').textContent = `Total Item:${productcount}`
-                // Clear previous content
-                productList.innerHTML = '';
-                // Iterate through each product and create a card
-                // Iterate through each product and create a card
-                result.forEach(product => {
-                    // Create card element
-                    const card = document.createElement('div');
-                    card.classList.add('prod-card02');
+                if (result.Message) {
+                    document.getElementById('empty_cart').style.display = 'block';
+                    document.getElementById('all_content').style.display = 'none';
 
-                    // Create container for name and spec
-                    const infoContainer01 = document.createElement('div');
-                    infoContainer01.classList.add('info-container01');  // Container for name and spec
+                }
 
-                    const infoContainer02 = document.createElement('div');
-                    infoContainer02.classList.add('info-container02');  // Container for image and infoContainer01
+                else {
+                    document.getElementById('total_item').textContent = `Total Item:${productcount}`
+                    // Clear previous content
+                    productList.innerHTML = '';
+                    // Iterate through each product and create a card
+                    let totalcost = 0
 
-                    // Create image element
-                    const img = document.createElement('img');
-                    img.classList.add('image');
-                    img.src = product.image_path.image; // Using the correct path from the JSON
-                    img.alt = product.product_name;
+                    result.forEach(product => {
+                        // Create card element
+                        const card = document.createElement('div');
+                        card.classList.add('prod-card02');
 
-                    // Create heading for product name
-                    const name = document.createElement('h2');
-                    name.classList.add('cart_prod_name');
-                    name.textContent = product.product_name;
+                        // Create container for name and spec
+                        const infoContainer01 = document.createElement('div');
+                        infoContainer01.classList.add('info-container01');  // Container for name and spec
 
-                    // Create paragraph for product spec
-                    const spec = document.createElement('p');
-                    spec.textContent = `Spec: ${product.product_spec}`;
+                        const ul = document.createElement('hr')
+                        const infoContainer02 = document.createElement('div');
+                        infoContainer02.classList.add('info-container02');  // Container for image and infoContainer01
 
-                    const quantityContainer = document.createElement('div');
-                    quantityContainer.classList.add('quantity-container');
+                        // Create image element
+                        const img = document.createElement('img');
+                        img.classList.add('image');
+                        img.src = product.image_path.image; // Using the correct path from the JSON
+                        img.alt = product.product_name;
 
-                    // Create decrease button
-                    const decreaseButton = document.createElement('button');
-                    decreaseButton.classList.add('decrease');
-                    decreaseButton.textContent = '-';
-                    quantityContainer.appendChild(decreaseButton);
+                        // Create heading for product name
+                        const name = document.createElement('h2');
+                        name.classList.add('cart_prod_name');
+                        name.textContent = product.product_name;
 
-                    // Create quantity input
-                    const quantity = document.createElement('input');
-                    quantity.classList.add('numberstyle');
-                    quantity.type = "number";
-                    quantity.min = "1";
-                    quantity.step = "1";
-                    quantity.value = product.count; // Assuming product.count holds the quantity
-                    quantityContainer.appendChild(quantity);
+                        // Create paragraph for product spec
+                        const spec = document.createElement('p');
+                        spec.textContent = `Spec: ${product.product_spec}`;
 
-                    // Create increase button
-                    const increaseButton = document.createElement('button');
-                    increaseButton.classList.add('increase');
-                    increaseButton.textContent = '+';
-                    quantityContainer.appendChild(increaseButton);
+                        const quantityContainer = document.createElement('div');
+                        quantityContainer.classList.add('quantity-container');
 
-                    // Append quantity container to card
-                    // Create paragraph for product cost
-                    const cost = document.createElement('b');
-                    cost.classList.add('cart_cost');
-                    cost.textContent = `  RS.${product.product_cost}`;
+                        // Create decrease button
+                        const decreaseButton = document.createElement('button');
+                        decreaseButton.classList.add('decrease');
+                        decreaseButton.textContent = '-';
+                        quantityContainer.appendChild(decreaseButton);
 
-                    // Append name and spec to info container
-                    infoContainer01.appendChild(name);
-                    infoContainer01.appendChild(spec);
+                        // Create quantity input
+                        const quantity = document.createElement('input');
+                        quantity.classList.add('numberstyle');
+                        quantity.type = "number";
+                        quantity.min = "1";
+                        quantity.step = "1";
+                        quantity.value = product.count; // Assuming product.count holds the quantity
+                        quantityContainer.appendChild(quantity);
 
-                    // Append img and infoContainer01 to infoContainer02
-                    infoContainer02.appendChild(img);
-                    infoContainer02.appendChild(infoContainer01);
-                    quantityContainer.appendChild(cost)
-                    // Append elements to card
-                    card.appendChild(infoContainer02);
-                    card.appendChild(quantityContainer);
-                    // card.appendChild(cost);
+                        // Create increase button
+                        const increaseButton = document.createElement('button');
+                        increaseButton.classList.add('increase');
+                        increaseButton.textContent = '+';
+                        quantityContainer.appendChild(increaseButton);
 
-                    // Append card to product list
-                    productList.appendChild(card);
-                });
+                        // Append quantity container to card
+                        // Create paragraph for product cost
+                        const cost = document.createElement('b');
+                        cost.classList.add('cart_cost');
+                        cost.textContent = `  ₹ ${product.product_cost}`;
 
-                // Update the cart count and click event after rendering products
+                        //Product list
+                        totalcost += product.product_cost * product.count
+                        console.log(totalcost);
 
+                        // Append name and spec to info container
+                        infoContainer01.appendChild(name);
+                        infoContainer01.appendChild(ul)
+
+                        infoContainer01.appendChild(spec);
+                        // Append img and infoContainer01 to infoContainer02
+                        infoContainer02.appendChild(img);
+                        infoContainer02.appendChild(infoContainer01);
+                        quantityContainer.appendChild(cost)
+                        // Append elements to card
+                        card.appendChild(infoContainer02);
+                        card.appendChild(quantityContainer);
+                        // card.appendChild(cost);
+
+                        // Append card to product list
+                        productList.appendChild(card);
+                    });
+
+                    const totalcostlist = document.getElementById('prod_cart_list');
+                    totalcostlist.textContent = `Total Cost: ₹ ${totalcost}`;
+
+                }
 
             } catch (e) {
                 console.log(e);
             }
         }
 
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add event listener for increase button
+            document.getElementById('cart-content01').addEventListener('click', function (event) {
+                if (event.target.classList.contains('increase')) {
+                    // Get the associated quantity input
+                    quantityInput = event.target.parentElement.querySelector('.numberstyle');
+
+                    // Increase the quantity
+                    quantityInput.value = parseInt(quantityInput.value) + 1;
+
+                    // Update total cost
+                    updateTotalCost();
+                }
+
+                // Add event listener for decrease button
+                if (event.target.classList.contains('decrease')) {
+                    // Get the associated quantity input
+                    quantityInput = event.target.parentElement.querySelector('.numberstyle');
+
+                    // Ensure the quantity doesn't go below 1
+                    if (parseInt(quantityInput.value) > 1) {
+                        // Decrease the quantity
+                        quantityInput.value = parseInt(quantityInput.value) - 1;
+
+                        // Update total cost
+                        updateTotalCost();
+                    }
+                }
+            });
+        });
+
+        function updateTotalCost() {
+            // Get all quantity inputs
+            const quantityInputs = document.querySelectorAll('.numberstyle');
+
+            // Initialize total cost
+            let totalCost = 0;
+
+            // Iterate through each product
+            quantityInputs.forEach(input => {
+                // Get the associated card
+                const card = input.parentElement.parentElement;
+
+                // Get the cost of the product
+                const cost = parseFloat(card.querySelector('.cart_cost').textContent.replace('₹', '').trim());
+
+                // Calculate total cost for each product
+                const productTotalCost = cost * parseInt(input.value);
+
+                // Add to the overall total cost
+                totalCost += productTotalCost;
+            });
+
+            // Update the total cost element
+            document.getElementById('prod_cart_list').textContent = `Total Cost: ₹ ${totalCost}`;
+        }
 
     </script>
 </body>

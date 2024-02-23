@@ -118,39 +118,45 @@ app.post('/addtocart', async (req, res) => {
     }
 });
 app.post('/cart_details', async (req, res) => {
-    console.log(req.body);
-    const { emailid } = req.body
-    let finaldata = []
-    const data = await pool.query("Select product_details from user_details where email_id=$1", [emailid])
+    try {
+        console.log(req.body);
+        const { emailid } = req.body
+        let finaldata = []
+        const data = await pool.query("Select product_details from user_details where email_id=$1", [emailid])
 
-    const productDetails = data.rows[0].product_details;
+        const productDetails = data.rows[0].product_details;
 
-    for (let i = 0; i < productDetails.length; i++) {
-        const result = await pool.query("SELECT * FROM product_details WHERE product_id=$1", [productDetails[i].product_id]);
-        finaldata = finaldata.concat(result.rows);
-    }
-    const productCountMap = new Map();
-
-    // Filter out duplicates and count occurrences
-    finaldata.forEach(product => {
-        // Check if the product_id is already in the map
-        if (productCountMap.has(product.product_id)) {
-            // If yes, update the count
-            const existingProduct = productCountMap.get(product.product_id);
-            existingProduct.count += 1;
-            productCountMap.set(product.product_id, existingProduct);
-        } else {
-            // If not, add it with count 1
-            productCountMap.set(product.product_id, { ...product, count: 1 });
+        for (let i = 0; i < productDetails.length; i++) {
+            const result = await pool.query("SELECT * FROM product_details WHERE product_id=$1", [productDetails[i].product_id]);
+            finaldata = finaldata.concat(result.rows);
         }
-    });
+        const productCountMap = new Map();
 
-    // Convert the map values to an array since res.json() expects an array or object
-    const uniqueProducts = Array.from(productCountMap.values());
+        // Filter out duplicates and count occurrences
+        finaldata.forEach(product => {
+            // Check if the product_id is already in the map
+            if (productCountMap.has(product.product_id)) {
+                // If yes, update the count
+                const existingProduct = productCountMap.get(product.product_id);
+                existingProduct.count += 1;
+                productCountMap.set(product.product_id, existingProduct);
+            } else {
+                // If not, add it with count 1
+                productCountMap.set(product.product_id, { ...product, count: 1 });
+            }
+        });
 
-    // Send the unique products with their counts
-    res.json(uniqueProducts)
-    // res.send(finaldata)
+        // Convert the map values to an array since res.json() expects an array or object
+        const uniqueProducts = Array.from(productCountMap.values());
+
+        // Send the unique products with their counts
+        res.json(uniqueProducts)
+        // res.send(finaldata)
+    } catch (error) {
+        res.send({ Message: "Cart is empty" })
+
+    }
+
 })
 
 

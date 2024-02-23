@@ -57,6 +57,8 @@
         </div>
 
     </nav>
+    <!-- Add this inside the body tag, before the prod-card01 div -->
+    <div id="loader" class="loader" style="display: block;"></div>
 
     <div class="prod-card01" id="product-list"></div>
     <div id="myModal" class="modal">
@@ -95,6 +97,7 @@
         </div>
     </div>
     <script>
+        // document.getElementById('loader').style.display = 'block';
         let product = {};
         let count = 0
         productdetails()
@@ -205,6 +208,20 @@
             const cartCountElement = document.getElementById('cart-count');
             cartCountElement.textContent = 0;
         }
+        // Add this function to your script
+        // Add this function to your script
+        function toggleReadMore(initialSpec, remainingSpec, readMoreLink) {
+            if (remainingSpec.style.display === 'none') {
+                initialSpec.style.display = 'none';
+                remainingSpec.style.display = 'inline';
+                readMoreLink.textContent = 'Read less';
+            } else {
+                initialSpec.style.display = 'inline';
+                remainingSpec.style.display = 'none';
+                readMoreLink.textContent = 'Read more';
+            }
+        }
+
 
         //************************************Api Starts************************************//
 
@@ -212,62 +229,103 @@
         //******************************1.Retrive Product Details******************************//
         async function productdetails() {
             // Fetch data from JSON API
-            fetch('http://192.168.11.72:4000/getproductdetails')
-                .then(response => response.json())
-                .then(data => {
-                    const productList = document.getElementById('product-list');
-                    // Iterate through each product and create a card
-                    data.forEach(product => {
-                        // Create card element
-                        const card = document.createElement('div');
-                        card.classList.add('prod-card');
 
-                        // Create image element
-                        const img = document.createElement('img');
-                        img.classList.add('image');
-                        img.src = product.image_path.image; // Using the correct path from the JSON
-                        img.alt = product.product_name;
 
-                        // Create heading for product name
-                        const name = document.createElement('h2');
-                        name.textContent = product.product_name;
+            try {
+                fetch('http://192.168.11.72:4000/getproductdetails')
+                    .then(response => response.json())
+                    .then(data => {
+                        const productList = document.getElementById('product-list');
+                        // Iterate through each product and create a card
+                        data.forEach(product => {
+                            // Create card element
+                            const card = document.createElement('div');
+                            card.classList.add('prod-card');
 
-                        // Create paragraph for product spec
-                        const spec = document.createElement('p');
-                        spec.textContent = `Spec: ${product.product_spec}`;
+                            // Create image element
+                            const img = document.createElement('img');
+                            img.classList.add('image');
+                            img.src = product.image_path.image; // Using the correct path from the JSON
+                            img.alt = product.product_name;
 
-                        
-                        // Create paragraph for product cost
-                        const cost = document.createElement('b');
-                        cost.textContent = `Cost: RS.${product.product_cost}`;
+                            // Create heading for product name
+                            const name = document.createElement('h2');
+                            name.textContent = product.product_name;
 
-                        const cart = document.createElement('button');
-                        cart.classList.add('addcart_buy02');
-                        cart.textContent = 'Add to Cart';
+                            // // Create paragraph for product spec
+                            // const spec = document.createElement('p');
+                            // spec.textContent = `Spec: ${product.product_spec}`;
+                            // Create paragraph for product spec
+                            const spec = document.createElement('p');
+                            spec.textContent = `Spec: ${product.product_spec}`;
+                            const specContainer = document.createElement('div');
+                            specContainer.classList.add('product-spec-container');
 
-                        // Set data attributes for the product
-                        // cart.dataset.productName = product.product_name;
-                        // cart.dataset.productSpec = product.product_spec;
-                        // cart.dataset.productImage = product.product_image;
-                        cart.dataset.productId = product.product_id
+                            // Extract the initial part and remaining part of the spec
+                            const initialSpec = document.createElement('span');
+                            initialSpec.textContent = product.product_spec.substring(0, 80); // Display the first 80 characters initially
+                            initialSpec.classList.add('initial-spec');
 
-                        // Append elements to card
-                        card.appendChild(img);
-                        card.appendChild(name);
-                        card.appendChild(spec);
-                        card.appendChild(cost);
-                        card.appendChild(cart);
+                            const remainingSpec = document.createElement('span');
+                            remainingSpec.textContent = product.product_spec
+                            remainingSpec.classList.add('remaining-spec');
+                            remainingSpec.style.display = 'none'; // Initially hide the remaining part
 
-                        // Append card to product list
-                        productList.appendChild(card);
+                            //break tag
+                            const breaktag = document.createElement('br');
+                            // Add a "Read more" link
+                            const readMoreLink = document.createElement('a');
+                            readMoreLink.textContent = 'Read more';
+                            readMoreLink.classList.add('read-more-link');
+                            readMoreLink.onclick = function () {
+                                toggleReadMore(initialSpec, remainingSpec, readMoreLink);
+                            };
+                            specContainer.appendChild(initialSpec);
+                            specContainer.appendChild(remainingSpec);
+                            specContainer.appendChild(breaktag)
+                            specContainer.appendChild(readMoreLink);
+
+
+                            // Create paragraph for product cost
+                            const cost = document.createElement('b');
+                            cost.textContent = `₹ ${product.product_cost}`;
+
+                            const cart = document.createElement('button');
+                            cart.classList.add('addcart_buy02');
+                            cart.textContent = 'Add to Cart';
+
+                            // Set data attributes for the product
+                            // cart.dataset.productName = product.product_name;
+                            // cart.dataset.productSpec = product.product_spec;
+                            // cart.dataset.productImage = product.product_image;
+                            cart.dataset.productId = product.product_id
+
+                            // Append elements to card
+                            card.appendChild(img);
+                            card.appendChild(name);
+                            // card.appendChild(spec);
+
+                            card.appendChild(specContainer);
+                            card.appendChild(cost);
+                            card.appendChild(cart);
+
+                            // Append card to product list
+                            productList.appendChild(card);
+                        });
+
+
+
+                        // Update the cart count and click event after rendering products
+                        cartcount();
+                        document.getElementById('loader').style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
                     });
+            } catch (error) {
 
-                    // Update the cart count and click event after rendering products
-                    cartcount();
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
+            }
+            
         }
 
         // //******************************2.Login******************************//
