@@ -124,12 +124,18 @@
 
             // Extract the total cost value (assuming the format is "Total Cost: ₹ {amount}")
             const totalCost = parseFloat(totalCostText.split('₹')[1].trim());
-            
+
             // Perform the redirection to Razorpay with the total amount
             // Replace the following URL with the actual Razorpay payment URL and parameters
             window.location.href = `https://example.com/razorpay/payment?amount=${totalCost}`;
         }
+        function openNav() {
+            document.getElementById("side-nav").classList.add('sidenav_open');
+        }
 
+        function closeNav() {
+            document.getElementById("side-nav").classList.remove('sidenav_open');
+        }
         async function cartdetails(emailid) {
             try {
                 const data = { emailid: emailid };
@@ -219,7 +225,10 @@
                         //Product list
                         totalcost += product.product_cost * product.count
                         console.log(totalcost);
-
+                        //remove item
+                        const removebutton = document.createElement('button');
+                        removebutton.classList.add('removeitem');
+                        removebutton.textContent='Remove item'
                         // Append name and spec to info container
                         infoContainer01.appendChild(name);
                         infoContainer01.appendChild(ul)
@@ -229,11 +238,12 @@
                         infoContainer02.appendChild(img);
                         infoContainer02.appendChild(infoContainer01);
                         quantityContainer.appendChild(cost)
+                      
                         // Append elements to card
                         card.appendChild(infoContainer02);
                         card.appendChild(quantityContainer);
                         // card.appendChild(cost);
-
+                        card.appendChild(removebutton)
                         // Append card to product list
                         productList.appendChild(card);
                     });

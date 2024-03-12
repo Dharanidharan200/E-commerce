@@ -1,12 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment</title>
-</head>
+adaniadani
 <body>
-    
+  <h1>Payment Gateway</h1>
+  <form action="/charge" method="post">
+    <label for="amount">Amount (in cents): </label>
+    <input type="text" id="amount" name="amount" required>
+    <br>
+    <label for="source">Card Source: </label>
+    <input type="text" id="source" name="source" required>
+    <br>
+    <label for="description">Description: </label>
+    <input type="text" id="description" name="description" required>
+    <br>
+    <button type="submit">Pay Now</button>
+  </form>
 </body>
 </html>
