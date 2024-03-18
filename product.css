@@ -11,7 +11,7 @@
 
 body,
 html {
-    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     /* font-family: "Montserrat", serif; */
     margin: 0;
     font-size: 15px;
@@ -34,7 +34,7 @@ h2 {
     padding: 0.2rem 0rem;
     font-size: 17px;
     font-weight: 600;
-    
+
 }
 
 p {
@@ -42,7 +42,7 @@ p {
     padding: 0.1rem 0rem;
     font-size: 15px;
     font-weight: 500;
-    
+
 }
 
 button,
@@ -61,10 +61,11 @@ nav {
     font-size: 20px;
     padding: 1rem 5vw;
     box-shadow: 0 0 30px lightgray;
-    position: sticky;
+    position: sticky !important;
     top: 0;
     background-color: #ffffff;
-    z-index: 1000;
+    z-index: 3000;
+    height: 65px;
 }
 
 nav span {
@@ -75,7 +76,7 @@ nav p {
     font-size: 24px;
     font-weight: 600;
     cursor: default;
-  
+
 }
 
 nav li {
@@ -91,7 +92,7 @@ nav a {
     transition: 0.1s ease-in-out;
     font-size: 15px;
     font-weight: 600;
- 
+
 }
 
 nav a:hover {
@@ -170,7 +171,7 @@ nav .btn {
     padding: 0.5rem;
     font-size: 14px;
     font-weight: 600;
- 
+
     border: 1px solid #0197a3;
 
 
@@ -208,17 +209,22 @@ nav .btn {
 #yourcart {
     width: 60%;
     padding: 20px;
-    margin: 0px 78px 0px 78px;
+    /* margin: 0px 78px 0px 78px; */
+    height: 100px;
 }
 
 .buy_process {
-    margin: 50px 0px 0px 0px;
+    /* margin: 50px 0px 0px 0px; */
     padding: 15px;
-
+    width: 30%;
+    height: 100px;
 }
 
 .all_content {
     display: flex;
+    overflow: auto;
+    /* height: 1939px; */
+    height: calc(100vh - 9.73vh);
 
 }
 
@@ -230,7 +236,7 @@ nav .btn {
     border-radius: 16px;
     width: 300px;
     position: fixed;
-     
+
 }
 
 .card:hover {
@@ -240,7 +246,8 @@ nav .btn {
 .container {
     padding-top: 20px;
 }
- #buybutton{
+
+#buybutton {
     background-color: #0197A3;
     color: white;
     border: none;
@@ -249,18 +256,23 @@ nav .btn {
     width: 145px;
     margin: 4px 57px;
     cursor: pointer;
- }
+}
+
 #subtotal {
     text-align: center;
 }
-.empty_cart,#empty_cart{
+
+.empty_cart,
+#empty_cart {
     text-align: center;
-    
+
 }
-#emptycartimage{
+
+#emptycartimage {
     height: 245px;
 }
-#empty_cart_button{
+
+#empty_cart_button {
     height: 32px;
     background-color: #0197A3;
     border-radius: 7px;
@@ -269,9 +281,15 @@ nav .btn {
     color: white;
     font-weight: 600;
 }
-#empty_cart_button:hover{
-    color:#000
+
+#empty_cart_button:hover {
+    color: #000
 }
+
+#emptyone {
+    width: 10%;
+}
+
 /* Add this to your existing stylesheet or create a new one */
 /* Add this to your existing stylesheet or create a new one */
 /* Add this to your existing stylesheet or create a new one */
@@ -292,21 +310,24 @@ nav .btn {
     color: blue;
     text-decoration: underline;
 }
+
 hr {
-   
+
     margin: 0 auto;
     border: 0;
     height: 1px;
     background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
 }
-hr:hover{
-  
+
+hr:hover {
+
     margin: 0 auto;
     border: 0;
     height: 1px;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(50, 199, 209, 0.75), rgba(0, 0, 0, 0)); 
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(50, 199, 209, 0.75), rgba(0, 0, 0, 0));
 }
-#subtotalhr{
+
+#subtotalhr {
     color: black;
     margin: 0 auto;
     border: 0;
@@ -315,20 +336,24 @@ hr:hover{
     background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
 
 }
-.cart_prod_name{
+
+.cart_prod_name {
     text-align: center;
 }
-#confirmation{
-    border:1px solid;
+
+#confirmation {
+    border: 1px solid;
     z-index: 1000;
-   
+
 }
-.removeitem{
-    margin: 0px 0px 0px 454px;
+
+.removeitem {
+
     height: 22px;
     cursor: pointer;
     /* border: none; */
 }
+
 /* Add this to your existing stylesheet or create a new one */
 .loader {
     border: 8px solid #f3f3f3;
@@ -346,6 +371,83 @@ hr:hover{
     /* Initially hide the loader */
 }
 
+/*Pagination*/
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+#pg_pagination{
+    display: flex;
+    justify-content: center;
+}
+
+.pagination{
+    float: right;
+    padding: 9px;
+}
+.pagination ul {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    background: #fff;
+    color: black;
+    padding: 8px;
+    border-radius: 50px;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid #798fa544;
+}
+
+.pagination ul li {
+    color: black;
+    list-style: none;
+    line-height: 45px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+}
+
+.pagination ul li.numb {
+    list-style: none;
+    height: 45px;
+    width: 45px;
+    margin: 0 3px;
+    line-height: 45px;
+    border-radius: 50%;
+}
+
+.pagination ul li.numb.first {
+    margin: 0px 3px 0 -5px;
+}
+
+.pagination ul li.numb.last {
+    margin: 0px -5px 0 3px;
+}
+
+.pagination ul li.dots {
+    font-size: 22px;
+    cursor: default;
+}
+
+.pagination ul li.btn {
+    padding: 0 20px;
+    border-radius: 50px;
+}
+
+.pagination li.active,
+.pagination ul li.numb:hover,
+.pagination ul li:first-child:hover,
+.pagination ul li:last-child:hover {
+    color: #fff;
+    background: #0197A3;
+}
+/**/
 @keyframes spin {
     0% {
         transform: rotate(0deg);
@@ -423,7 +525,7 @@ p {
     line-height: 16px;
     text-align: center;
     color: white;
-   
+
     font-weight: bold;
     margin-left: -15px;
 }
@@ -619,7 +721,15 @@ p {
 }
 
 /* MEDIA QUERIES - RESPONSIVE LAYOUT */
+@media screen and (min-width: 780px) and (max-width:1078px) {
+    #emptyone {
+        width: 0%;
+    }
 
+    .buy_process {
+        width: 40%;
+    }
+}
 
 @media screen and (max-width: 780px) {
     nav li {
@@ -693,6 +803,32 @@ p {
         border-bottom: 1px solid #bfbfbf;
         padding: 4% 0%;
 
+    }
+
+    #yourcart {
+        width: 100%;
+        padding: 20px;
+        margin: 0px;
+        height: auto;
+    }
+
+    #all_content {
+        /* display: block; */
+        flex-direction: column;
+
+    }
+
+    .removeitem {
+        margin: 0px;
+    }
+
+    .card {
+        position: absolute;
+    }
+
+    .info-container02 {
+        display: flex;
+        flex-direction: column;
     }
 
 }

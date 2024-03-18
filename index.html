@@ -96,7 +96,15 @@
             </form>
         </div>
     </div>
+    <div id="pg_pagination">
+        <div id="pagination-container" class="pagination">
+            <ul></ul>
+        </div>
+
+    </div>
+
     <script>
+
         // document.getElementById('loader').style.display = 'block';
         let product = {};
         let count = 0
@@ -221,111 +229,210 @@
                 readMoreLink.textContent = 'Read more';
             }
         }
+        // **********************Pagination**********************//
+        const element = document.querySelector(".pagination ul");
+        let totalPages;
 
 
-        //************************************Api Starts************************************//
 
+        element.innerHTML = createPagination();
+        // Function to display products for a specific page
+        const productList = document.getElementById('product-list');
 
-        //******************************1.Retrive Product Details******************************//
-        async function productdetails() {
+        const displayProductsPerPage = (data, currentPage, itemsPerPage) => {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const productsToShow = data.slice(startIndex, endIndex);
+            // Clear the existing product list
+            productList.innerHTML = '';
+            // Display the new set of products
+            displayProductsUI(productsToShow);
+        };
+
+        // Function to display products on the UI
+        const displayProductsUI = (products) => {
+            productdetails(products);
+            // Display products in your UI as per your requirement
+            console.log(products);
+        };
+
+        async function createPagination() {
+            try {
+                const response = await fetch('http://192.168.11.72:4000/getproductdetails');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch product details');
+                }
+                const data = await response.json();
+                const itemsPerPage = 10;
+                const totalPages = Math.ceil(data.length / itemsPerPage);
+                let currentPage = 1; // Initialize current page to 1
+                const element = document.querySelector(".pagination ul");
+                let liTag = '';
+                const productList = document.getElementById('product-list');
+
+                // Function to render pagination based on the current page
+                const renderPagination = () => {
+                    liTag = '';
+
+                    // Adding the Prev button
+                    if (currentPage > 1) {
+                        liTag += `<li class="btn prev" onclick="createPagination(${currentPage - 1})"><span><i class="fas fa-angle-left"></i> Prev</span></li>`;
+                    }
+
+                    // Handling the display of the first page and "..."
+                    if (currentPage > 2) {
+                        liTag += `<li class="numb" onclick="createPagination(1)"><span>1</span></li>`;
+                        if (currentPage > 3) {
+                            liTag += `<li class="dots"><span>...</span></li>`;
+                        }
+                    }
+
+                    // Determining the range of numbered buttons to show
+                    let beforePage = currentPage - 2 > 0 ? currentPage - 2 : 1;
+                    let afterPage = currentPage + 2 < totalPages ? currentPage + 2 : totalPages;
+
+                    for (let pageNum = beforePage; pageNum <= afterPage; pageNum++) {
+                        if (pageNum === currentPage) {
+                            liTag += `<li class="numb active"><span>${pageNum}</span></li>`;
+                        } else {
+                            liTag += `<li class="numb" onclick="createPagination(${pageNum})"><span>${pageNum}</span></li>`;
+                        }
+                    }
+
+                    // Handling the display of "..." and the last page
+                    if (currentPage < totalPages - 1) {
+                        if (currentPage < totalPages - 2) {
+                            liTag += `<li class="dots"><span>...</span></li>`;
+                        }
+                        liTag += `<li class="numb" onclick="createPagination(${totalPages})"><span>${totalPages}</span></li>`;
+                    }
+
+                    // Adding the Next button
+                    if (currentPage < totalPages) {
+                        liTag += `<li class="btn next" onclick="createPagination(${currentPage + 1})"><span>Next <i class="fas fa-angle-right"></i></span></li>`;
+                    }
+
+                    // Updating the DOM
+                    element.innerHTML = liTag;
+                };
+
+                // Initial rendering of pagination
+                renderPagination();
+
+                // Display products for the first page initially
+                displayProductsPerPage(data, currentPage, itemsPerPage);
+
+                // Function to create pagination for a specific page
+                window.createPagination = (page) => {
+                    currentPage = page;
+                    renderPagination();
+                    // Call another function to display products for the selected page
+                    displayProductsPerPage(data, currentPage, itemsPerPage);
+                };
+
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+            }
+        }
+        async function productdetails(products) {
             // Fetch data from JSON API
 
 
             try {
-                fetch('http://192.168.11.72:4000/getproductdetails')
-                    .then(response => response.json())
-                    .then(data => {
-                        const productList = document.getElementById('product-list');
-                        // Iterate through each product and create a card
-                        data.forEach(product => {
-                            // Create card element
-                            const card = document.createElement('div');
-                            card.classList.add('prod-card');
+                // fetch('http://192.168.11.72:4000/getproductdetails')
+                //     .then(response => response.json())
+                //     .then(data => {
+                const productList = document.getElementById('product-list');
+                // Iterate through each product and create a card
+                products.forEach(product => {
+                    // Create card element
+                    const card = document.createElement('div');
+                    card.classList.add('prod-card');
 
-                            // Create image element
-                            const img = document.createElement('img');
-                            img.classList.add('image');
-                            img.src = product.image_path.image; // Using the correct path from the JSON
-                            img.alt = product.product_name;
+                    // Create image element
+                    const img = document.createElement('img');
+                    img.classList.add('image');
+                    img.src = product.image_path.image; // Using the correct path from the JSON
+                    img.alt = product.product_name;
 
-                            // Create heading for product name
-                            const name = document.createElement('h2');
-                            name.textContent = product.product_name;
+                    // Create heading for product name
+                    const name = document.createElement('h2');
+                    name.textContent = product.product_name;
 
-                            // // Create paragraph for product spec
-                            // const spec = document.createElement('p');
-                            // spec.textContent = `Spec: ${product.product_spec}`;
-                            // Create paragraph for product spec
-                            const spec = document.createElement('p');
-                            spec.textContent = `Spec: ${product.product_spec}`;
-                            const specContainer = document.createElement('div');
-                            specContainer.classList.add('product-spec-container');
+                    // // Create paragraph for product spec
+                    // const spec = document.createElement('p');
+                    // spec.textContent = `Spec: ${product.product_spec}`;
+                    // Create paragraph for product spec
+                    const spec = document.createElement('p');
+                    spec.textContent = `Spec: ${product.product_spec}`;
+                    const specContainer = document.createElement('div');
+                    specContainer.classList.add('product-spec-container');
 
-                            // Extract the initial part and remaining part of the spec
-                            const initialSpec = document.createElement('span');
-                            initialSpec.textContent = product.product_spec.substring(0, 80); // Display the first 80 characters initially
-                            initialSpec.classList.add('initial-spec');
+                    // Extract the initial part and remaining part of the spec
+                    const initialSpec = document.createElement('span');
+                    initialSpec.textContent = product.product_spec.substring(0, 80); // Display the first 80 characters initially
+                    initialSpec.classList.add('initial-spec');
 
-                            const remainingSpec = document.createElement('span');
-                            remainingSpec.textContent = product.product_spec
-                            remainingSpec.classList.add('remaining-spec');
-                            remainingSpec.style.display = 'none'; // Initially hide the remaining part
+                    const remainingSpec = document.createElement('span');
+                    remainingSpec.textContent = product.product_spec
+                    remainingSpec.classList.add('remaining-spec');
+                    remainingSpec.style.display = 'none'; // Initially hide the remaining part
 
-                            //break tag
-                            const breaktag = document.createElement('br');
-                            // Add a "Read more" link
-                            const readMoreLink = document.createElement('a');
-                            readMoreLink.textContent = 'Read more';
-                            readMoreLink.classList.add('read-more-link');
-                            readMoreLink.onclick = function () {
-                                toggleReadMore(initialSpec, remainingSpec, readMoreLink);
-                            };
-                            specContainer.appendChild(initialSpec);
-                            specContainer.appendChild(remainingSpec);
-                            specContainer.appendChild(breaktag)
-                            specContainer.appendChild(readMoreLink);
-
-
-                            // Create paragraph for product cost
-                            const cost = document.createElement('b');
-                            cost.textContent = `₹ ${product.product_cost}`;
-
-                            const cart = document.createElement('button');
-                            cart.classList.add('addcart_buy02');
-                            cart.textContent = 'Add to Cart';
-
-                            // Set data attributes for the product
-                            // cart.dataset.productName = product.product_name;
-                            // cart.dataset.productSpec = product.product_spec;
-                            // cart.dataset.productImage = product.product_image;
-                            cart.dataset.productId = product.product_id
-
-                            // Append elements to card
-                            card.appendChild(img);
-                            card.appendChild(name);
-                            // card.appendChild(spec);
-
-                            card.appendChild(specContainer);
-                            card.appendChild(cost);
-                            card.appendChild(cart);
-
-                            // Append card to product list
-                            productList.appendChild(card);
-                        });
+                    //break tag
+                    const breaktag = document.createElement('br');
+                    // Add a "Read more" link
+                    const readMoreLink = document.createElement('a');
+                    readMoreLink.textContent = 'Read more';
+                    readMoreLink.classList.add('read-more-link');
+                    readMoreLink.onclick = function () {
+                        toggleReadMore(initialSpec, remainingSpec, readMoreLink);
+                    };
+                    specContainer.appendChild(initialSpec);
+                    specContainer.appendChild(remainingSpec);
+                    specContainer.appendChild(breaktag)
+                    specContainer.appendChild(readMoreLink);
 
 
+                    // Create paragraph for product cost
+                    const cost = document.createElement('b');
+                    cost.textContent = `₹ ${product.product_cost}`;
 
-                        // Update the cart count and click event after rendering products
-                        cartcount();
-                        document.getElementById('loader').style.display = 'none';
-                    })
-                    .catch(error => {
-                        console.error('Error fetching data:', error);
-                    });
+                    const cart = document.createElement('button');
+                    cart.classList.add('addcart_buy02');
+                    cart.textContent = 'Add to Cart';
+
+                    // Set data attributes for the product
+                    // cart.dataset.productName = product.product_name;
+                    // cart.dataset.productSpec = product.product_spec;
+                    // cart.dataset.productImage = product.product_image;
+                    cart.dataset.productId = product.product_id
+
+                    // Append elements to card
+                    card.appendChild(img);
+                    card.appendChild(name);
+                    // card.appendChild(spec);
+
+                    card.appendChild(specContainer);
+                    card.appendChild(cost);
+                    card.appendChild(cart);
+
+                    // Append card to product list
+                    productList.appendChild(card);
+                });
+
+
+
+                // Update the cart count and click event after rendering products
+                cartcount();
+                document.getElementById('loader').style.display = 'none';
+                // })
+                // .catch(error => {
+                //     console.error('Error fetching data:', error);
+                // });
             } catch (error) {
 
             }
-            
+
         }
 
         // //******************************2.Login******************************//
